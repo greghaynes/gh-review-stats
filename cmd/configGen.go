@@ -18,34 +18,47 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // configGenCmd represents the configGen command
 var configGenCmd = &cobra.Command{
-	Use:   "configGen",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "config-gen",
+	Short: "Generate the default config file",
+	Long: `Generate the default config file, if it does not exist.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("configGen called")
+If it does exist, update it to include any settings that are missing.
+`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		var err error
+
+		// Write the configuration file with any values we read in and
+		// the defaults for values that are missing. If the user has
+		// provided a config file name, try to use that. Otherwise use
+		// the default path.
+		if cfgFile != "" {
+			err = viper.WriteConfigAs(cfgFile)
+		} else {
+			err = viper.WriteConfig()
+		}
+		cobra.CheckErr(errors.Wrap(err, "failed to create configuration file"))
+
+		// Now re-read the config. This automatically uses the name
+		// from the config file option, if present, because
+		// initConfig() has set up viper.
+		err = viper.ReadInConfig()
+		cobra.CheckErr(errors.Wrap(err, "failed to re-read configuration file"))
+
+		// Now we can figure out what name was actually used and
+		// report that we wrote to it.
+		filename := viper.ConfigFileUsed()
+		fmt.Printf("wrote %q\n", filename)
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(configGenCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// configGenCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// configGenCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

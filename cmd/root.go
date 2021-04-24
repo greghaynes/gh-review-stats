@@ -76,6 +76,7 @@ func initConfig() {
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".gh-review-stats")
 	}
+	viper.SetConfigType("yml")
 
 	viper.SetDefault("github.token", "")
 
