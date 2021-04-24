@@ -13,3 +13,9 @@ $ gh-review-stats config-gen
 Using config file: /Users/doc/.gh-review-stats.yml
 wrote "/Users/doc/.gh-review-stats.yml"
 ```
+
+### github.token
+
+The `github.token` is a [personal access
+token](https://github.com/settings/tokens) used to access the GitHub
+API to increase the hourly API call limit.
