@@ -77,6 +77,8 @@ func initConfig() {
 		viper.SetConfigName(".gh-review-stats")
 	}
 
+	viper.SetDefault("github.token", "")
+
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
