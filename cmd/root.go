@@ -60,7 +60,7 @@ func initConfig() {
 		home, err := homedir.Dir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".gh-review-stats" (without extension).
+		// Search config in home directory with name ".gh-review-stats".
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".gh-review-stats")
 		viper.SetConfigType("yml")
