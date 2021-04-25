@@ -47,7 +47,7 @@ The `reviewers` sub-command generates a report showing the number of
 comments made across pull requests in a repository by each reviewer.
 
 ```console
-$ go run ./main.go  reviewers --org sphinx-contrib --repo datatemplates
+$ gh-review-stats reviewers --org sphinx-contrib --repo datatemplates
 Using config file: /Users/dhellmann/.gh-review-stats.yml
 ...............................................
 
