@@ -25,6 +25,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+const githubTokenConfigOptionName = "github.token"
+
 var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
@@ -39,6 +41,10 @@ func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
 }
 
+func githubToken() string {
+	return viper.GetString(githubTokenConfigOptionName)
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -46,7 +52,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	viper.SetDefault("github.token", "")
+	viper.SetDefault(githubTokenConfigOptionName, "")
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gh-review-stats.yml)")
 
