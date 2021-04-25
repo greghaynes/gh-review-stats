@@ -41,7 +41,15 @@ If it does exist, update it to include any settings that are missing.
 		if cfgFile != "" {
 			err = viper.WriteConfigAs(cfgFile)
 		} else {
-			err = viper.WriteConfig()
+			// If a file was read on startup, we use WriteConfig() to
+			// force overwriting it. Otherwise, use SafeWriteConfig(),
+			// which supports creating a file.
+			filename := viper.ConfigFileUsed()
+			if filename != "" {
+				err = viper.WriteConfig()
+			} else {
+				err = viper.SafeWriteConfig()
+			}
 		}
 		cobra.CheckErr(errors.Wrap(err, "failed to create configuration file"))
 
