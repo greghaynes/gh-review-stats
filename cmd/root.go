@@ -72,8 +72,8 @@ func initConfig() {
 		// Search config in home directory with name ".gh-review-stats" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".gh-review-stats")
+		viper.SetConfigType("yml")
 	}
-	viper.SetConfigType("yml")
 
 	viper.SetDefault("github.token", "")
 
