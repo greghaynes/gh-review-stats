@@ -59,7 +59,7 @@ var reviewersCmd = &cobra.Command{
 		query := &util.PullRequestQuery{
 			Org:     orgName,
 			Repo:    repoName,
-			DevMode: true, // FIXME
+			DevMode: devMode,
 			Client:  util.NewGithubClient(context.Background(), githubToken()),
 		}
 

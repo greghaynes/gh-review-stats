@@ -29,6 +29,9 @@ const githubTokenConfigOptionName = "github.token"
 
 var cfgFile string
 
+// devMode is a flag telling us whether we are in developer mode
+var devMode bool
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "gh-review-stats",
@@ -55,6 +58,7 @@ func init() {
 	viper.SetDefault(githubTokenConfigOptionName, "")
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gh-review-stats.yml)")
+	rootCmd.PersistentFlags().BoolVar(&devMode, "dev", false, "enable developer mode, shortcutting some queries")
 
 }
 
