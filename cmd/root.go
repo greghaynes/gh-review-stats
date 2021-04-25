@@ -46,6 +46,8 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
+	viper.SetDefault("github.token", "")
+
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gh-review-stats.yml)")
 
 }
@@ -65,8 +67,6 @@ func initConfig() {
 		viper.SetConfigName(".gh-review-stats")
 		viper.SetConfigType("yml")
 	}
-
-	viper.SetDefault("github.token", "")
 
 	viper.AutomaticEnv() // read in environment variables that match
 
