@@ -19,15 +19,34 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+const ignoreConfigOptionName = "reviewers.ignore"
+
+// ignoredReviewers is the list of github ids to leave out of the
+// stats
+var ignoredReviewers = []string{}
 
 // reviewersCmd represents the reviewers command
 var reviewersCmd = &cobra.Command{
 	Use:   "reviewers",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("reviewers called")
 	Short: "List reviewers of PRs in a repo",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		fmt.Println("reviewers called", reviewersToIgnore())
+		return nil
 	},
+}
+
+func reviewersToIgnore() map[string]interface{} {
+	result := map[string]interface{}{}
+	for _, i := range ignoredReviewers {
+		result[i] = nil
+	}
+	for _, i := range viper.GetStringSlice(ignoreConfigOptionName) {
+		result[i] = nil
+	}
+	return result
 }
 
 func init() {
@@ -35,11 +54,9 @@ func init() {
 
 	// Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// reviewersCmd.PersistentFlags().String("foo", "", "A help for foo")
+	viper.SetDefault(ignoreConfigOptionName, []string{})
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// reviewersCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	reviewersCmd.Flags().StringSliceVarP(&ignoredReviewers,
+		"ignore", "i", []string{},
+		"ignore a reviewer (useful for bots), can be repeated")
 }
