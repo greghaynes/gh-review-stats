@@ -2,6 +2,15 @@
 
 A command line tool for examining review statistics for GitHub repositories.
 
+## Installing
+
+1. Download a pre-built binary for your platform from [the
+   releases](https://github.com/dhellmann/gh-review-stats/releases)
+   page on GitHub.
+2. Unpack the archive.
+3. Copy the binary to a directory in your `$PATH` (for example,
+   `~/bin`).
+
 ## Configuration
 
 The default configuration file is `~/.gh-review-stats.yml`. The
