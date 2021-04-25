@@ -16,7 +16,14 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"sort"
+	"time"
+
+	"github.com/dhellmann/gh-review-stats/reviewers"
+	"github.com/dhellmann/gh-review-stats/util"
+	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,23 +35,75 @@ const ignoreConfigOptionName = "reviewers.ignore"
 // stats
 var ignoredReviewers = []string{}
 
+// orgName and repoName are the GitHub organization and repository to query
+var orgName, repoName string
+
+// daysBack is the number of days of history to examine (older items are ignored)
+var daysBack int
+
 // reviewersCmd represents the reviewers command
 var reviewersCmd = &cobra.Command{
 	Use:   "reviewers",
 	Short: "List reviewers of PRs in a repo",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("reviewers called", reviewersToIgnore())
+		if orgName == "" {
+			cobra.CheckErr(errors.New("Missing required option --org"))
+		}
+		if repoName == "" {
+			cobra.CheckErr(errors.New("Missing required option --repo"))
+		}
+
+		query := &util.PullRequestQuery{
+			Org:     orgName,
+			Repo:    repoName,
+			DevMode: true, // FIXME
+			Client:  util.NewGithubClient(context.Background(), githubToken()),
+		}
+
+		earliestDate := time.Now().AddDate(0, 0, daysBack*-1)
+		reviewerStats := &reviewers.Stats{
+			Query:        query,
+			EarliestDate: earliestDate,
+		}
+
+		err := query.IteratePullRequests(reviewerStats.ProcessOne)
+		if err != nil {
+			return errors.Wrap(err, "failed to retrieve pull request details")
+		}
+
+		toIgnore := reviewersToIgnore()
+		orderedReviewers := reviewerStats.ReviewersInOrder()
+
+		for _, reviewer := range orderedReviewers {
+			if _, ok := toIgnore[reviewer]; ok {
+				continue
+			}
+			count := reviewerStats.ReviewCounts[reviewer]
+			prs := reviewerStats.PRsForReviewer(reviewer)
+
+			fmt.Printf("%d/%d: %s\n", count, len(prs), reviewer)
+
+			sort.Slice(prs, func(i, j int) bool {
+				return prs[i].ReviewCount > prs[j].ReviewCount
+			})
+			for _, prWithCount := range prs {
+				pr := prWithCount.PR
+				fmt.Printf("\t%3d: %s [%s] %q\n", prWithCount.ReviewCount,
+					*pr.HTMLURL, *pr.User.Login, *pr.Title)
+			}
+		}
+
 		return nil
 	},
 }
 
-func reviewersToIgnore() map[string]interface{} {
-	result := map[string]interface{}{}
+func reviewersToIgnore() map[string]bool {
+	result := map[string]bool{}
 	for _, i := range ignoredReviewers {
-		result[i] = nil
+		result[i] = true
 	}
 	for _, i := range viper.GetStringSlice(ignoreConfigOptionName) {
-		result[i] = nil
+		result[i] = true
 	}
 	return result
 }
@@ -59,4 +118,8 @@ func init() {
 	reviewersCmd.Flags().StringSliceVarP(&ignoredReviewers,
 		"ignore", "i", []string{},
 		"ignore a reviewer (useful for bots), can be repeated")
+	reviewersCmd.Flags().StringVarP(&orgName, "org", "o", "", "github org")
+	reviewersCmd.Flags().StringVarP(&repoName, "repo", "r", "", "github repository")
+	reviewersCmd.Flags().IntVar(&daysBack, "days-back", 90,
+		"how many days back to query, defaults to 90")
 }
