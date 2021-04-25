@@ -52,6 +52,9 @@ var reviewersCmd = &cobra.Command{
 		if repoName == "" {
 			cobra.CheckErr(errors.New("Missing required option --repo"))
 		}
+		if githubToken() == "" {
+			cobra.CheckErr(errors.New("Missing GitHub token"))
+		}
 
 		query := &util.PullRequestQuery{
 			Org:     orgName,
