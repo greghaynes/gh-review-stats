@@ -57,7 +57,11 @@ var reviewersCmd = &cobra.Command{
 			Client:  util.NewGithubClient(context.Background(), githubToken()),
 		}
 
-		earliestDate := time.Now().AddDate(0, 0, daysBack*-1)
+		var earliestDate time.Time
+		if daysBack > 0 {
+			earliestDate = time.Now().AddDate(0, 0, daysBack*-1)
+		}
+
 		reviewerStats := &reviewers.Stats{
 			Query:        query,
 			EarliestDate: earliestDate,

@@ -68,7 +68,11 @@ var pullRequestsCmd = &cobra.Command{
 			Cascade: false,
 		}
 
-		earliestDate := time.Now().AddDate(0, 0, daysBack*-1)
+		var earliestDate time.Time
+		if daysBack > 0 {
+			earliestDate = time.Now().AddDate(0, 0, daysBack*-1)
+		}
+
 		theStats := &stats.Stats{
 			Query:        query,
 			EarliestDate: earliestDate,
