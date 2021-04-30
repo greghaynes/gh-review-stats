@@ -8,5 +8,6 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
+	github.com/stretchr/testify v1.4.0
 	golang.org/x/oauth2 v0.0.0-20210413134643-5e61552d6c78
 )
