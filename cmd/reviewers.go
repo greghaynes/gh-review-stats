@@ -35,12 +35,6 @@ const ignoreConfigOptionName = "reviewers.ignore"
 // stats
 var ignoredReviewers = []string{}
 
-// orgName and repoName are the GitHub organization and repository to query
-var orgName, repoName string
-
-// daysBack is the number of days of history to examine (older items are ignored)
-var daysBack int
-
 // reviewersCmd represents the reviewers command
 var reviewersCmd = &cobra.Command{
 	Use:   "reviewers",
@@ -121,8 +115,4 @@ func init() {
 	reviewersCmd.Flags().StringSliceVarP(&ignoredReviewers,
 		"ignore", "i", []string{},
 		"ignore a reviewer (useful for bots), can be repeated")
-	reviewersCmd.Flags().StringVarP(&orgName, "org", "o", "", "github org")
-	reviewersCmd.Flags().StringVarP(&repoName, "repo", "r", "", "github repository")
-	reviewersCmd.Flags().IntVar(&daysBack, "days-back", 90,
-		"how many days back to query, defaults to 90")
 }

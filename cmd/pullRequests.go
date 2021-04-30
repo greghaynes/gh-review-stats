@@ -142,10 +142,5 @@ func getName(user *github.User) string {
 }
 
 func init() {
-	pullRequestsCmd.Flags().StringVarP(&orgName, "org", "o", "", "github org")
-	pullRequestsCmd.Flags().StringVarP(&repoName, "repo", "r", "", "github repository")
-	pullRequestsCmd.Flags().IntVar(&daysBack, "days-back", 90,
-		"how many days back to query, defaults to 90")
-
 	rootCmd.AddCommand(pullRequestsCmd)
 }

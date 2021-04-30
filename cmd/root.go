@@ -32,6 +32,12 @@ var cfgFile string
 // devMode is a flag telling us whether we are in developer mode
 var devMode bool
 
+// orgName and repoName are the GitHub organization and repository to query
+var orgName, repoName string
+
+// daysBack is the number of days of history to examine (older items are ignored)
+var daysBack int
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "gh-review-stats",
@@ -57,8 +63,16 @@ func init() {
 
 	viper.SetDefault(githubTokenConfigOptionName, "")
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gh-review-stats.yml)")
-	rootCmd.PersistentFlags().BoolVar(&devMode, "dev", false, "enable developer mode, shortcutting some queries")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
+		"config file (default is $HOME/.gh-review-stats.yml)")
+	rootCmd.PersistentFlags().BoolVar(&devMode, "dev", false,
+		"enable developer mode, shortcutting some queries")
+	rootCmd.PersistentFlags().StringVarP(&orgName, "org", "o", "",
+		"github org")
+	rootCmd.PersistentFlags().StringVarP(&repoName, "repo", "r", "",
+		"github repository")
+	rootCmd.PersistentFlags().IntVar(&daysBack, "days-back", 90,
+		"how many days back to query")
 
 }
 
