@@ -20,6 +20,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/dhellmann/gh-review-stats/stats"
@@ -132,7 +133,7 @@ func newPullRequestsCommand() *cobra.Command {
 
 				out.Write([]string{
 					fmt.Sprintf("%d", *prd.Pull.Number),
-					*prd.Pull.Title,
+					strings.TrimSpace(*prd.Pull.Title),
 					prd.State,
 					user,
 					*prd.Pull.HTMLURL,
