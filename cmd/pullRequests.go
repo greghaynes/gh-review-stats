@@ -32,104 +32,123 @@ import (
 
 const dateFmt = "2006-01-02"
 
-// pullRequestsCmd represents the pullRequests command
-var pullRequestsCmd = &cobra.Command{
-	Use:   "pull-requests",
-	Short: "List pull requests and some characteristics in CSV format",
-	Long:  `Produce a CSV list of pull requests suitable for import into a spreadsheet.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if orgName == "" {
-			cobra.CheckErr(errors.New("Missing required option --org"))
-		}
-		if repoName == "" {
-			cobra.CheckErr(errors.New("Missing required option --repo"))
-		}
-		if githubToken() == "" {
-			cobra.CheckErr(errors.New("Missing GitHub token"))
-		}
+// newPullRequestsCmd creates a pullRequests command
+func newPullRequestsCommand() *cobra.Command {
+	var outputFileName string
 
-		query := &util.PullRequestQuery{
-			Org:     orgName,
-			Repo:    repoName,
-			DevMode: devMode,
-			Client:  util.NewGithubClient(context.Background(), githubToken()),
-		}
-
-		all := stats.Bucket{
-			Rule: func(prd *stats.PullRequestDetails) bool {
-
-				// FIXME: Add an option to include all PRs
-				if prd.State != "merged" {
-					return false
-				}
-
-				return true
-			},
-			Cascade: false,
-		}
-
-		var earliestDate time.Time
-		if daysBack > 0 {
-			earliestDate = time.Now().AddDate(0, 0, daysBack*-1)
-		}
-
-		theStats := &stats.Stats{
-			Query:        query,
-			EarliestDate: earliestDate,
-			Buckets:      []*stats.Bucket{&all},
-		}
-		err := theStats.Populate()
-		if err != nil {
-			return errors.Wrap(err, "could not generate stats")
-		}
-
-		out := csv.NewWriter(os.Stdout)
-		out.Write([]string{
-			"ID",
-			"Title",
-			"State",
-			"Author",
-			"URL",
-			"Created",
-			"Closed",
-			"Days to Merge",
-		})
-
-		for _, prd := range all.Requests {
-
-			var (
-				createdAt, closedAt string
-				daysToMerge         int = -1
-			)
-
-			if prd.Pull.CreatedAt != nil {
-				createdAt = prd.Pull.CreatedAt.Format(dateFmt)
+	var pullRequestsCmd = &cobra.Command{
+		Use:   "pull-requests",
+		Short: "List pull requests and some characteristics in CSV format",
+		Long:  `Produce a CSV list of pull requests suitable for import into a spreadsheet.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if orgName == "" {
+				cobra.CheckErr(errors.New("Missing required option --org"))
 			}
-			if prd.Pull.ClosedAt != nil {
-				closedAt = prd.Pull.ClosedAt.Format(dateFmt)
+			if repoName == "" {
+				cobra.CheckErr(errors.New("Missing required option --repo"))
 			}
-			if prd.State == "merged" && prd.Pull.CreatedAt != nil && prd.Pull.ClosedAt != nil {
-				daysToMerge = int(prd.Pull.ClosedAt.Sub(*prd.Pull.CreatedAt).Hours() / 24)
+			if githubToken() == "" {
+				cobra.CheckErr(errors.New("Missing GitHub token"))
 			}
 
-			user := getName(prd.Pull.User)
+			query := &util.PullRequestQuery{
+				Org:     orgName,
+				Repo:    repoName,
+				DevMode: devMode,
+				Client:  util.NewGithubClient(context.Background(), githubToken()),
+			}
+
+			all := stats.Bucket{
+				Rule: func(prd *stats.PullRequestDetails) bool {
+
+					// FIXME: Add an option to include all PRs
+					if prd.State != "merged" {
+						return false
+					}
+
+					return true
+				},
+				Cascade: false,
+			}
+
+			var earliestDate time.Time
+			if daysBack > 0 {
+				earliestDate = time.Now().AddDate(0, 0, daysBack*-1)
+			}
+
+			theStats := &stats.Stats{
+				Query:        query,
+				EarliestDate: earliestDate,
+				Buckets:      []*stats.Bucket{&all},
+			}
+			err := theStats.Populate()
+			if err != nil {
+				return errors.Wrap(err, "could not generate stats")
+			}
+
+			var out *csv.Writer
+			if outputFileName == "" {
+				out = csv.NewWriter(os.Stdout)
+			} else {
+				outFile, err := os.Create(outputFileName)
+				cobra.CheckErr(errors.Wrap(err, "could not create output file"))
+				defer outFile.Close()
+				fmt.Printf("writing to %s\n", outputFileName)
+				out = csv.NewWriter(outFile)
+			}
 
 			out.Write([]string{
-				fmt.Sprintf("%d", *prd.Pull.Number),
-				*prd.Pull.Title,
-				prd.State,
-				user,
-				*prd.Pull.HTMLURL,
-				createdAt,
-				closedAt,
-				fmt.Sprintf("%d", daysToMerge),
+				"ID",
+				"Title",
+				"State",
+				"Author",
+				"URL",
+				"Created",
+				"Closed",
+				"Days to Merge",
 			})
-		}
 
-		out.Flush()
+			for _, prd := range all.Requests {
 
-		return nil
-	},
+				var (
+					createdAt, closedAt string
+					daysToMerge         int = -1
+				)
+
+				if prd.Pull.CreatedAt != nil {
+					createdAt = prd.Pull.CreatedAt.Format(dateFmt)
+				}
+				if prd.Pull.ClosedAt != nil {
+					closedAt = prd.Pull.ClosedAt.Format(dateFmt)
+				}
+				if prd.State == "merged" && prd.Pull.CreatedAt != nil && prd.Pull.ClosedAt != nil {
+					daysToMerge = int(prd.Pull.ClosedAt.Sub(*prd.Pull.CreatedAt).Hours() / 24)
+				}
+
+				user := getName(prd.Pull.User)
+
+				out.Write([]string{
+					fmt.Sprintf("%d", *prd.Pull.Number),
+					*prd.Pull.Title,
+					prd.State,
+					user,
+					*prd.Pull.HTMLURL,
+					createdAt,
+					closedAt,
+					fmt.Sprintf("%d", daysToMerge),
+				})
+			}
+
+			out.Flush()
+
+			return nil
+		},
+	}
+
+	pullRequestsCmd.Flags().StringVarP(&outputFileName, "output", "O", "",
+		"output file to create (defaults to stdout)")
+
+	return pullRequestsCmd
 }
 
 func getName(user *github.User) string {
@@ -146,5 +165,5 @@ func getName(user *github.User) string {
 }
 
 func init() {
-	rootCmd.AddCommand(pullRequestsCmd)
+	rootCmd.AddCommand(newPullRequestsCommand())
 }
