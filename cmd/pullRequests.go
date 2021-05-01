@@ -74,6 +74,8 @@ func newPullRequestsCommand() *cobra.Command {
 			var earliestDate time.Time
 			if daysBack > 0 {
 				earliestDate = time.Now().AddDate(0, 0, daysBack*-1)
+				fmt.Fprintf(os.Stderr, "including data since %s\n",
+					earliestDate.Format("2006-01-02"))
 			}
 
 			theStats := &stats.Stats{
@@ -93,7 +95,7 @@ func newPullRequestsCommand() *cobra.Command {
 				outFile, err := os.Create(outputFileName)
 				cobra.CheckErr(errors.Wrap(err, "could not create output file"))
 				defer outFile.Close()
-				fmt.Printf("writing to %s\n", outputFileName)
+				fmt.Fprintf(os.Stderr, "writing to %s\n", outputFileName)
 				out = csv.NewWriter(outFile)
 			}
 
