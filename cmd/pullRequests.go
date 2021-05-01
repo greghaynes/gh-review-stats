@@ -108,6 +108,7 @@ func newPullRequestsCommand() *cobra.Command {
 				"Created",
 				"Closed",
 				"Days to Merge",
+				"Review Activity",
 			})
 
 			for _, prd := range all.Requests {
@@ -138,6 +139,7 @@ func newPullRequestsCommand() *cobra.Command {
 					createdAt,
 					closedAt,
 					fmt.Sprintf("%d", daysToMerge),
+					fmt.Sprintf("%d", prd.AllActivityCount),
 				})
 			}
 
