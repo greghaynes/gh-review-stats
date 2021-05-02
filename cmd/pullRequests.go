@@ -20,6 +20,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
 	"time"
 
@@ -52,11 +53,14 @@ func newPullRequestsCommand() *cobra.Command {
 				cobra.CheckErr(errors.New("Missing GitHub token"))
 			}
 
+			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+			defer stop()
+
 			query := &util.PullRequestQuery{
 				Org:     orgName,
 				Repo:    repoName,
 				DevMode: devMode,
-				Client:  util.NewGithubClient(context.Background(), githubToken()),
+				Client:  util.NewGithubClient(ctx, githubToken()),
 			}
 
 			all := stats.Bucket{
@@ -84,9 +88,15 @@ func newPullRequestsCommand() *cobra.Command {
 				EarliestDate: earliestDate,
 				Buckets:      []*stats.Bucket{&all},
 			}
-			err := theStats.Populate()
+			err := theStats.Populate(ctx)
 			if err != nil {
 				return errors.Wrap(err, "could not generate stats")
+			}
+
+			select {
+			case <-ctx.Done():
+				return nil
+			default:
 			}
 
 			var out *csv.Writer

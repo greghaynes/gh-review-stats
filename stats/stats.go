@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -61,8 +62,8 @@ type Stats struct {
 
 // Populate runs the query and filters requests into the appropriate
 // buckets
-func (s *Stats) Populate() error {
-	return s.Query.IteratePullRequests(s.process)
+func (s *Stats) Populate(ctx context.Context) error {
+	return s.Query.IteratePullRequests(ctx, s.process)
 }
 
 // Process extracts the required information from a single PR

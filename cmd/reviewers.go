@@ -18,6 +18,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
 	"sort"
 	"time"
 
@@ -50,11 +52,14 @@ var reviewersCmd = &cobra.Command{
 			cobra.CheckErr(errors.New("Missing GitHub token"))
 		}
 
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+		defer stop()
+
 		query := &util.PullRequestQuery{
 			Org:     orgName,
 			Repo:    repoName,
 			DevMode: devMode,
-			Client:  util.NewGithubClient(context.Background(), githubToken()),
+			Client:  util.NewGithubClient(ctx, githubToken()),
 		}
 
 		var earliestDate time.Time
@@ -67,18 +72,26 @@ var reviewersCmd = &cobra.Command{
 			EarliestDate: earliestDate,
 		}
 
-		err := query.IteratePullRequests(reviewerStats.ProcessOne)
+		err := query.IteratePullRequests(ctx, reviewerStats.ProcessOne)
 		if err != nil {
 			return errors.Wrap(err, "failed to retrieve pull request details")
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
 		}
 
 		toIgnore := reviewersToIgnore()
 		orderedReviewers := reviewerStats.ReviewersInOrder()
 
 		for _, reviewer := range orderedReviewers {
+
 			if _, ok := toIgnore[reviewer]; ok {
 				continue
 			}
+
 			count := reviewerStats.ReviewCounts[reviewer]
 			prs := reviewerStats.PRsForReviewer(reviewer)
 

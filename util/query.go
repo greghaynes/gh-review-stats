@@ -24,9 +24,8 @@ type PRCallback func(*github.PullRequest) error
 
 // IteratePullRequests queries for all pull requests and invokes the
 // callback with each PR individually
-func (q *PullRequestQuery) IteratePullRequests(callback PRCallback) error {
+func (q *PullRequestQuery) IteratePullRequests(ctx context.Context, callback PRCallback) error {
 
-	ctx := context.Background()
 	opts := &github.PullRequestListOptions{
 		State: "all",
 		ListOptions: github.ListOptions{
@@ -52,6 +51,14 @@ func (q *PullRequestQuery) IteratePullRequests(callback PRCallback) error {
 					*pr.HTMLURL, err)
 				continue
 			}
+
+			select {
+			case <-ctx.Done():
+				fmt.Fprintf(os.Stderr, "stopping\n")
+				return nil
+			default:
+			}
+
 			fmt.Fprintf(os.Stderr, ".")
 		}
 
