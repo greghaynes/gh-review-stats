@@ -37,6 +37,7 @@ const dateFmt = "2006-01-02"
 // newPullRequestsCmd creates a pullRequests command
 func newPullRequestsCommand() *cobra.Command {
 	var outputFileName string
+	var includeAll bool
 
 	var pullRequestsCmd = &cobra.Command{
 		Use:   "pull-requests",
@@ -66,8 +67,7 @@ func newPullRequestsCommand() *cobra.Command {
 			all := stats.Bucket{
 				Rule: func(prd *stats.PullRequestDetails) bool {
 
-					// FIXME: Add an option to include all PRs
-					if prd.State != "merged" {
+					if !includeAll && prd.State != "merged" {
 						return false
 					}
 
@@ -118,7 +118,7 @@ func newPullRequestsCommand() *cobra.Command {
 				"URL",
 				"Created",
 				"Closed",
-				"Days to Merge",
+				"Days Open",
 				"Review Activity",
 			})
 
@@ -126,7 +126,7 @@ func newPullRequestsCommand() *cobra.Command {
 
 				var (
 					createdAt, closedAt string
-					daysToMerge         int = -1
+					daysOpen            int = -1
 				)
 
 				if prd.Pull.CreatedAt != nil {
@@ -135,8 +135,12 @@ func newPullRequestsCommand() *cobra.Command {
 				if prd.Pull.ClosedAt != nil {
 					closedAt = prd.Pull.ClosedAt.Format(dateFmt)
 				}
-				if prd.State == "merged" && prd.Pull.CreatedAt != nil && prd.Pull.ClosedAt != nil {
-					daysToMerge = int(prd.Pull.ClosedAt.Sub(*prd.Pull.CreatedAt).Hours() / 24)
+				if prd.Pull.CreatedAt != nil {
+					if prd.State == "merged" && prd.Pull.ClosedAt != nil {
+						daysOpen = int(prd.Pull.ClosedAt.Sub(*prd.Pull.CreatedAt).Hours() / 24)
+					} else {
+						daysOpen = int(time.Since(*prd.Pull.CreatedAt).Hours() / 24)
+					}
 				}
 
 				user := getName(prd.Pull.User)
@@ -149,7 +153,7 @@ func newPullRequestsCommand() *cobra.Command {
 					*prd.Pull.HTMLURL,
 					createdAt,
 					closedAt,
-					fmt.Sprintf("%d", daysToMerge),
+					fmt.Sprintf("%d", daysOpen),
 					fmt.Sprintf("%d", prd.AllActivityCount),
 				})
 			}
@@ -162,6 +166,8 @@ func newPullRequestsCommand() *cobra.Command {
 
 	pullRequestsCmd.Flags().StringVarP(&outputFileName, "output", "O", "",
 		"output file to create (defaults to stdout)")
+	pullRequestsCmd.Flags().BoolVar(&includeAll, "all", false,
+		"include all PRs, not just merged")
 
 	return pullRequestsCmd
 }
