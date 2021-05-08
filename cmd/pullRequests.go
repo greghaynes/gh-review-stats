@@ -156,9 +156,15 @@ func newPullRequestsCommand() *cobra.Command {
 					fmt.Sprintf("%d", daysOpen),
 					fmt.Sprintf("%d", prd.AllActivityCount),
 				})
-			}
 
-			out.Flush()
+				out.Flush()
+
+				select {
+				case <-ctx.Done():
+					return nil
+				default:
+				}
+			}
 
 			return nil
 		},
