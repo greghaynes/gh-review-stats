@@ -15,4 +15,4 @@ lint: ## Run go linter
 
 .PHONY: release
 release: ## Run goreleaser
-	goreleaser release
+	goreleaser release --rm-dist
