@@ -67,34 +67,34 @@ func (s *Stats) Populate(ctx context.Context) error {
 }
 
 // Process extracts the required information from a single PR
-func (s *Stats) process(pr *github.PullRequest) error {
+func (s *Stats) process(ctx context.Context, pr *github.PullRequest) error {
 	// Ignore old closed items
 	if !s.EarliestDate.IsZero() && *pr.State == "closed" && pr.UpdatedAt.Before(s.EarliestDate) {
 		return nil
 	}
-	return s.ProcessOne(pr)
+	return s.ProcessOne(ctx, pr)
 }
 
-func (s *Stats) ProcessOne(pr *github.PullRequest) error {
-	isMerged, err := s.Query.IsMerged(pr)
+func (s *Stats) ProcessOne(ctx context.Context, pr *github.PullRequest) error {
+	isMerged, err := s.Query.IsMerged(ctx, pr)
 	if err != nil {
 		return errors.Wrap(err,
 			fmt.Sprintf("could not determine merged status of %s", *pr.HTMLURL))
 	}
 
-	issueComments, err := s.Query.GetIssueComments(pr)
+	issueComments, err := s.Query.GetIssueComments(ctx, pr)
 	if err != nil {
 		return errors.Wrap(err,
 			fmt.Sprintf("could not fetch issue comments on %s", *pr.HTMLURL))
 	}
 
-	prComments, err := s.Query.GetPRComments(pr)
+	prComments, err := s.Query.GetPRComments(ctx, pr)
 	if err != nil {
 		return errors.Wrap(err,
 			fmt.Sprintf("could not fetch PR comments on %s", *pr.HTMLURL))
 	}
 
-	reviews, err := s.Query.GetReviews(pr)
+	reviews, err := s.Query.GetReviews(ctx, pr)
 	if err != nil {
 		return errors.Wrap(err,
 			fmt.Sprintf("could not fetch reviews on %s", *pr.HTMLURL))

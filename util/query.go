@@ -20,7 +20,7 @@ type PullRequestQuery struct {
 const pageSize int = 50
 
 // PRCallback is a type for callbacks for processing pull requests
-type PRCallback func(*github.PullRequest) error
+type PRCallback func(context.Context, *github.PullRequest) error
 
 // IteratePullRequests queries for all pull requests and invokes the
 // callback with each PR individually
@@ -45,7 +45,7 @@ func (q *PullRequestQuery) IteratePullRequests(ctx context.Context, callback PRC
 					"could not get pull requests for %s/%s", q.Org, q.Repo))
 		}
 		for _, pr := range prs {
-			err := callback(pr)
+			err := callback(ctx, pr)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "\ncould not process pull request %s: %s\n",
 					*pr.HTMLURL, err)
@@ -78,8 +78,7 @@ func (q *PullRequestQuery) IteratePullRequests(ctx context.Context, callback PRC
 	return nil
 }
 
-func (q *PullRequestQuery) GetIssueComments(pr *github.PullRequest) ([]*github.IssueComment, error) {
-	ctx := context.Background()
+func (q *PullRequestQuery) GetIssueComments(ctx context.Context, pr *github.PullRequest) ([]*github.IssueComment, error) {
 	opts := &github.IssueListCommentsOptions{
 		ListOptions: github.ListOptions{
 			PerPage: pageSize,
@@ -103,8 +102,7 @@ func (q *PullRequestQuery) GetIssueComments(pr *github.PullRequest) ([]*github.I
 	return results, nil
 }
 
-func (q *PullRequestQuery) GetPRComments(pr *github.PullRequest) ([]*github.PullRequestComment, error) {
-	ctx := context.Background()
+func (q *PullRequestQuery) GetPRComments(ctx context.Context, pr *github.PullRequest) ([]*github.PullRequestComment, error) {
 	opts := &github.PullRequestListCommentsOptions{
 		ListOptions: github.ListOptions{
 			PerPage: pageSize,
@@ -123,13 +121,18 @@ func (q *PullRequestQuery) GetPRComments(pr *github.PullRequest) ([]*github.Pull
 			break
 		}
 		opts.Page = response.NextPage
+
+		select {
+		case <-ctx.Done():
+			return results, nil
+		default:
+		}
 	}
 
 	return results, nil
 }
 
-func (q *PullRequestQuery) GetReviews(pr *github.PullRequest) ([]*github.PullRequestReview, error) {
-	ctx := context.Background()
+func (q *PullRequestQuery) GetReviews(ctx context.Context, pr *github.PullRequest) ([]*github.PullRequestReview, error) {
 	opts := &github.ListOptions{
 		PerPage: pageSize,
 	}
@@ -146,13 +149,18 @@ func (q *PullRequestQuery) GetReviews(pr *github.PullRequest) ([]*github.PullReq
 			break
 		}
 		opts.Page = response.NextPage
+
+		select {
+		case <-ctx.Done():
+			return results, nil
+		default:
+		}
 	}
 
 	return results, nil
 }
 
-func (q *PullRequestQuery) IsMerged(pr *github.PullRequest) (bool, error) {
-	ctx := context.Background()
+func (q *PullRequestQuery) IsMerged(ctx context.Context, pr *github.PullRequest) (bool, error) {
 	isMerged, _, err := q.Client.PullRequests.IsMerged(ctx, q.Org, q.Repo, *pr.Number)
 	return isMerged, err
 }

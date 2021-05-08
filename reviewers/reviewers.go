@@ -1,6 +1,7 @@
 package reviewers
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"time"
@@ -67,7 +68,7 @@ func getName(user *github.User) string {
 	return "unnamed"
 }
 
-func (s *Stats) ProcessOne(pr *github.PullRequest) error {
+func (s *Stats) ProcessOne(ctx context.Context, pr *github.PullRequest) error {
 
 	if s.ReviewCounts == nil {
 		s.ReviewCounts = make(map[string]int32)
@@ -92,7 +93,7 @@ func (s *Stats) ProcessOne(pr *github.PullRequest) error {
 		s.ReviewCountsByPR[name][*pr.Number]++
 	}
 
-	issueComments, err := s.Query.GetIssueComments(pr)
+	issueComments, err := s.Query.GetIssueComments(ctx, pr)
 	if err != nil {
 		return errors.Wrap(err,
 			fmt.Sprintf("could not fetch issue comments on %s", *pr.HTMLURL))
@@ -106,7 +107,7 @@ func (s *Stats) ProcessOne(pr *github.PullRequest) error {
 		incrementPR(name)
 	}
 
-	prComments, err := s.Query.GetPRComments(pr)
+	prComments, err := s.Query.GetPRComments(ctx, pr)
 	if err != nil {
 		return errors.Wrap(err,
 			fmt.Sprintf("could not fetch PR comments on %s", *pr.HTMLURL))
@@ -120,7 +121,7 @@ func (s *Stats) ProcessOne(pr *github.PullRequest) error {
 		incrementPR(name)
 	}
 
-	reviews, err := s.Query.GetReviews(pr)
+	reviews, err := s.Query.GetReviews(ctx, pr)
 	if err != nil {
 		return errors.Wrap(err,
 			fmt.Sprintf("could not fetch reviews on %s", *pr.HTMLURL))
