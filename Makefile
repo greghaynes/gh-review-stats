@@ -12,3 +12,7 @@ test: ## Run unit tests
 .PHONY: lint
 lint: ## Run go linter
 	golangci-lint run
+
+.PHONY: release
+release: ## Run goreleaser
+	goreleaser release
