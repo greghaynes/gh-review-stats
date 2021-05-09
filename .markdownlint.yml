@@ -1,0 +1,3 @@
+# https://github.com/igorshubovych/markdownlint-cli
+line-length:
+  line_length: 200
