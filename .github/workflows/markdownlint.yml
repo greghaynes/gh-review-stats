@@ -1,0 +1,36 @@
+name: markdown-lint
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - main
+  pull_request:
+
+jobs:
+
+#   https://github.com/marketplace/actions/markdownlint-cli
+#   markdownlint:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: markdownlint-cli
+#         uses: nosborn/github-action-markdown-cli@v1.1.1
+#         with:
+#           files: .
+
+  # https://github.com/marketplace/actions/markdown-linting-action
+  lint-readme:
+    name: Lint README file
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Lint README file
+      uses: docker://avtodev/markdown-lint:v1 # fastest way
+      with:
+        config: './.markdownlint.yml'
+        args: './README.md'
+        #rules: '/lint/rules/changelog.js'
+        #ignore: './one_file.md ./another_file.md' # multiple files must be separated with single space
+

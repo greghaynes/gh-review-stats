@@ -10,8 +10,12 @@ test: ## Run unit tests
 	go tool cover -func=$(COVER_PROFILE)
 
 .PHONY: lint
-lint: ## Run go linter
+lint: markdownlint ## Run go linter
 	golangci-lint run
+
+.PHONY: markdownlint
+markdownlint:
+	markdownlint --config ./.markdownlint.yml ./README.md
 
 .PHONY: release
 release: ## Run goreleaser
