@@ -27,6 +27,10 @@ archives:
       - README.md
       - LICENSE
     wrap_in_directory: true
+signs:
+  - artifacts: all
+    cmd: gpg2
+    args: ["--output", "${signature}", "--detach-sign", "--armor", "${artifact}"]
 checksum:
   name_template: 'checksums.txt'
 snapshot:

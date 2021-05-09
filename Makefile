@@ -20,3 +20,7 @@ markdownlint:
 .PHONY: release
 release: ## Run goreleaser
 	goreleaser release --rm-dist
+
+.PHONY: test-release
+test-release: ## Test running goreleaser
+	goreleaser --snapshot --skip-publish --rm-dist
