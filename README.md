@@ -52,12 +52,12 @@ Using config file: /Users/dhellmann/.gh-review-stats.yml
 ...............................................
 
 2/2: janbrohl
-	  1: https://github.com/sphinx-contrib/datatemplates/pull/79 [dhellmann] "docs: remove file section from inline example"
-	  1: https://github.com/sphinx-contrib/datatemplates/pull/77 [dhellmann] "docs: update use instructions"
+      1: https://github.com/sphinx-contrib/datatemplates/pull/79 [dhellmann] "docs: remove file section from inline example"
+      1: https://github.com/sphinx-contrib/datatemplates/pull/77 [dhellmann] "docs: update use instructions"
 2/1: dhellmann
-	  2: https://github.com/sphinx-contrib/datatemplates/pull/77 [dhellmann] "docs: update use instructions"
+      2: https://github.com/sphinx-contrib/datatemplates/pull/77 [dhellmann] "docs: update use instructions"
 1/1: kevung
-	  1: https://github.com/sphinx-contrib/datatemplates/pull/77 [dhellmann] "docs: update use instructions"
+      1: https://github.com/sphinx-contrib/datatemplates/pull/77 [dhellmann] "docs: update use instructions"
 ```
 
 The report is formatted as
@@ -93,4 +93,3 @@ ID,Title,State,Author,URL,Created,Closed,Days to Merge
 147,Support for new parameters in HWCC.,merged,Ashughorla,https://github.com/metal3-io/metal3-docs/pull/147,2020-10-30,2021-03-09,130
 138,design: add sub-states,merged,dtantsur,https://github.com/metal3-io/metal3-docs/pull/138,2020-09-21,2021-02-10,141
 ```
-
