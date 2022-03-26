@@ -42,47 +42,60 @@ func getName(user *github.User) string {
 func GetOrderedEvents(prd *stats.PullRequestDetails) []*Event {
 	results := []*Event{
 		&Event{
-			Date:        prd.Pull.CreatedAt,
-			Description: "pull request opened",
+			Date: prd.Pull.CreatedAt,
+			Description: fmt.Sprintf("#%d opened by %s %q (%s)",
+				*prd.Pull.Number, getName(prd.Pull.User), *prd.Pull.Title,
+				*prd.Pull.HTMLURL),
 		},
 	}
 	if prd.Pull.ClosedAt != nil {
-		desc := "pull request closed"
-		if prd.State == "merged" {
-			desc = "pull request merged"
-		}
+		daysOpen := int(prd.Pull.ClosedAt.Sub(*prd.Pull.CreatedAt).Hours() / 24)
 		results = append(results, &Event{
-			Date:        prd.Pull.ClosedAt,
-			Description: desc,
+			Date: prd.Pull.ClosedAt,
+			Description: fmt.Sprintf("#%d %s after %d days %q (%s)",
+				*prd.Pull.Number, prd.State, daysOpen, *prd.Pull.Title,
+				*prd.Pull.HTMLURL),
+		})
+	} else {
+		daysOpen := int(time.Since(*prd.Pull.CreatedAt).Hours() / 24)
+		now := time.Now()
+		results = append(results, &Event{
+			Date: &now,
+			Description: fmt.Sprintf("#%d %s %d days %q (%s)",
+				*prd.Pull.Number, prd.State, daysOpen, *prd.Pull.Title,
+				*prd.Pull.HTMLURL),
 		})
 	}
 
 	for _, commit := range prd.Commits {
 		results = append(results, &Event{
 			Date: commit.Commit.Author.Date,
-			Description: fmt.Sprintf("update by %s",
-				*commit.Commit.Author.Name),
+			Description: fmt.Sprintf("#%d updated by %s",
+				*prd.Pull.Number, *commit.Commit.Author.Name),
 		})
 	}
 
 	for _, review := range prd.Reviews {
 		results = append(results, &Event{
-			Date:        review.SubmittedAt,
-			Description: fmt.Sprintf("review by %s", getName(review.User)),
+			Date: review.SubmittedAt,
+			Description: fmt.Sprintf("#%d review by %s", *prd.Pull.Number,
+				getName(review.User)),
 		})
 	}
 
 	for _, comment := range prd.PullRequestComments {
 		results = append(results, &Event{
-			Date:        comment.CreatedAt,
-			Description: fmt.Sprintf("comment by %s", getName(comment.User)),
+			Date: comment.CreatedAt,
+			Description: fmt.Sprintf("#%d comment by %s", *prd.Pull.Number,
+				getName(comment.User)),
 		})
 	}
 
 	for _, comment := range prd.IssueComments {
 		results = append(results, &Event{
-			Date:        comment.CreatedAt,
-			Description: fmt.Sprintf("comment by %s", getName(comment.User)),
+			Date: comment.CreatedAt,
+			Description: fmt.Sprintf("#%d comment by %s", *prd.Pull.Number,
+				getName(comment.User)),
 		})
 	}
 

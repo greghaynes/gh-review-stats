@@ -21,8 +21,8 @@ import (
 	"math"
 	"os"
 	"os/signal"
+	"sort"
 	"strconv"
-	"time"
 
 	"github.com/dhellmann/gh-review-stats/events"
 	"github.com/dhellmann/gh-review-stats/stats"
@@ -33,18 +33,14 @@ import (
 
 // prHistoryCmd represents the prHistory command
 var prHistoryCmd = &cobra.Command{
-	Use:       "pr-history pull-request-id",
+	Use:       "pr-history pull-request-id...",
 	Short:     "Summarize the history of one pull request",
 	Long:      `Produce stats and a history log of one pull request`,
 	ValidArgs: []string{"pull-request"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) != 1 {
-			return fmt.Errorf("expecting 1 pull-request-id argument, got %d",
+		if len(args) < 1 {
+			return fmt.Errorf("expecting at least 1 pull-request-id argument, got %d",
 				len(args))
-		}
-		prID, err := strconv.Atoi(args[0])
-		if err != nil {
-			return errors.Wrap(err, "pull-request-id must be a number")
 		}
 
 		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -68,47 +64,39 @@ var prHistoryCmd = &cobra.Command{
 			},
 		}
 
-		pr, _, err := query.Client.PullRequests.Get(ctx, orgName, repoName, prID)
-		if err != nil {
-			return errors.Wrap(err, "failed to fetch pull request")
-		}
-		prStats.ProcessOne(ctx, pr)
+		// fetch all of the event data for all pull requests
+		for _, arg := range args {
+			prID, err := strconv.Atoi(arg)
+			if err != nil {
+				return errors.Wrap(err, "pull-request-id must be a number")
+			}
 
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-		}
+			pr, _, err := query.Client.PullRequests.Get(ctx, orgName, repoName, prID)
+			if err != nil {
+				return errors.Wrap(err, "failed to fetch pull request")
+			}
+			prStats.ProcessOne(ctx, pr)
 
-		prd := prStats.Buckets[0].Requests[0]
-		fmt.Printf("Pull request: %s\n", *prd.Pull.HTMLURL)
-
-		var (
-			createdAt, closedAt string
-			daysOpen            int = -1
-		)
-
-		if prd.Pull.CreatedAt != nil {
-			createdAt = prd.Pull.CreatedAt.Format(dateFmt)
-		}
-		if prd.Pull.ClosedAt != nil {
-			closedAt = prd.Pull.ClosedAt.Format(dateFmt)
-		}
-		if prd.Pull.CreatedAt != nil {
-			if prd.State == "merged" && prd.Pull.ClosedAt != nil {
-				daysOpen = int(prd.Pull.ClosedAt.Sub(*prd.Pull.CreatedAt).Hours() / 24)
-			} else {
-				daysOpen = int(time.Since(*prd.Pull.CreatedAt).Hours() / 24)
+			select {
+			case <-ctx.Done():
+				return nil
+			default:
 			}
 		}
-		fmt.Printf("Created     : %s\n", createdAt)
-		fmt.Printf("Closed      : %s\n", closedAt)
-		fmt.Printf("Age         : %d days\n", daysOpen)
-		fmt.Printf("\n")
 
+		// merge the events into a single stream
+		allEvents := []*events.Event{}
+		for _, prd := range prStats.Buckets[0].Requests {
+			events := events.GetOrderedEvents(prd)
+			allEvents = append(allEvents, events...)
+		}
+		sort.Slice(allEvents, func(i, j int) bool {
+			return allEvents[i].Date.Before(*allEvents[j].Date)
+		})
+
+		// show the event log
 		var previous *events.Event
-		events := events.GetOrderedEvents(prd)
-		for _, e := range events {
+		for _, e := range allEvents {
 			if previous != nil {
 				delay := int(math.Floor(e.Date.Sub(*previous.Date).Hours() / 24))
 				if delay > 1 {
