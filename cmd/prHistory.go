@@ -31,6 +31,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type personDateCount struct {
+	Person string
+	Count  int
+}
+
 // prHistoryCmd represents the prHistory command
 var prHistoryCmd = &cobra.Command{
 	Use:       "pr-history pull-request-id...",
@@ -94,6 +99,10 @@ var prHistoryCmd = &cobra.Command{
 			return allEvents[i].Date.Before(*allEvents[j].Date)
 		})
 
+		// prepare to summarize activity of participants
+		// maps user names to unique dates
+		personActivityDates := map[string]map[string]bool{}
+
 		// show the event log
 		var previous *events.Event
 		for _, e := range allEvents {
@@ -104,7 +113,33 @@ var prHistoryCmd = &cobra.Command{
 				}
 			}
 			fmt.Printf("%s: %s\n", e.Date.Format("Mon Jan _2"), e.Description)
+
+			if _, ok := personActivityDates[e.Person]; !ok {
+				personActivityDates[e.Person] = map[string]bool{}
+			}
+			personActivityDates[e.Person][e.Date.Format(dateFmt)] = true
+
 			previous = e
+		}
+
+		// show the number of dates each reviewer was active
+		pairs := []personDateCount{}
+		for person, dates := range personActivityDates {
+			if person == "" {
+				continue
+			}
+			pairs = append(pairs, personDateCount{
+				Person: person,
+				Count:  len(dates),
+			})
+		}
+		sort.Slice(pairs, func(i, j int) bool {
+			return pairs[i].Count > pairs[j].Count
+		})
+
+		fmt.Printf("\nNumber of Engaged Days\n")
+		for _, p := range pairs {
+			fmt.Printf("%s: %d\n", p.Person, p.Count)
 		}
 
 		return nil
