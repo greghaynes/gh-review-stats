@@ -27,6 +27,7 @@ import (
 type Event struct {
 	Date        *time.Time
 	Description string
+	Person      string
 }
 
 func getName(user *github.User) string {
@@ -46,6 +47,7 @@ func GetOrderedEvents(prd *stats.PullRequestDetails) []*Event {
 			Description: fmt.Sprintf("#%d opened by %s %q (%s)",
 				*prd.Pull.Number, getName(prd.Pull.User), *prd.Pull.Title,
 				*prd.Pull.HTMLURL),
+			Person: getName(prd.Pull.User),
 		},
 	}
 	if prd.Pull.ClosedAt != nil {
@@ -72,6 +74,7 @@ func GetOrderedEvents(prd *stats.PullRequestDetails) []*Event {
 			Date: commit.Commit.Author.Date,
 			Description: fmt.Sprintf("#%d updated by %s",
 				*prd.Pull.Number, *commit.Commit.Author.Name),
+			Person: *commit.Commit.Author.Name,
 		})
 	}
 
@@ -80,6 +83,7 @@ func GetOrderedEvents(prd *stats.PullRequestDetails) []*Event {
 			Date: review.SubmittedAt,
 			Description: fmt.Sprintf("#%d review by %s", *prd.Pull.Number,
 				getName(review.User)),
+			Person: getName(review.User),
 		})
 	}
 
@@ -88,6 +92,7 @@ func GetOrderedEvents(prd *stats.PullRequestDetails) []*Event {
 			Date: comment.CreatedAt,
 			Description: fmt.Sprintf("#%d comment by %s", *prd.Pull.Number,
 				getName(comment.User)),
+			Person: getName(comment.User),
 		})
 	}
 
@@ -96,6 +101,7 @@ func GetOrderedEvents(prd *stats.PullRequestDetails) []*Event {
 			Date: comment.CreatedAt,
 			Description: fmt.Sprintf("#%d comment by %s", *prd.Pull.Number,
 				getName(comment.User)),
+			Person: getName(comment.User),
 		})
 	}
 
