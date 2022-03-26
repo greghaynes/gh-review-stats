@@ -160,6 +160,34 @@ func (q *PullRequestQuery) GetReviews(ctx context.Context, pr *github.PullReques
 	return results, nil
 }
 
+func (q *PullRequestQuery) GetCommits(ctx context.Context, pr *github.PullRequest) ([]*github.RepositoryCommit, error) {
+	opts := &github.ListOptions{
+		PerPage: pageSize,
+	}
+	results := []*github.RepositoryCommit{}
+
+	for {
+		commits, response, err := q.Client.PullRequests.ListCommits(
+			ctx, q.Org, q.Repo, *pr.Number, opts)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, commits...)
+		if response.NextPage == 0 {
+			break
+		}
+		opts.Page = response.NextPage
+
+		select {
+		case <-ctx.Done():
+			return results, nil
+		default:
+		}
+	}
+
+	return results, nil
+}
+
 func (q *PullRequestQuery) IsMerged(ctx context.Context, pr *github.PullRequest) (bool, error) {
 	isMerged, _, err := q.Client.PullRequests.IsMerged(ctx, q.Org, q.Repo, *pr.Number)
 	return isMerged, err

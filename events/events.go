@@ -57,6 +57,14 @@ func GetOrderedEvents(prd *stats.PullRequestDetails) []*Event {
 		})
 	}
 
+	for _, commit := range prd.Commits {
+		results = append(results, &Event{
+			Date: commit.Commit.Author.Date,
+			Description: fmt.Sprintf("update by %s",
+				*commit.Commit.Author.Name),
+		})
+	}
+
 	for _, review := range prd.Reviews {
 		results = append(results, &Event{
 			Date:        review.SubmittedAt,

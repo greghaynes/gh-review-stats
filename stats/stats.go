@@ -28,6 +28,9 @@ type PullRequestDetails struct {
 	IssueComments           []*github.IssueComment
 	RecentIssueCommentCount int
 
+	// Updates show as commits
+	Commits []*github.RepositoryCommit
+
 	RecentActivityCount int
 	AllActivityCount    int
 
@@ -100,12 +103,19 @@ func (s *Stats) ProcessOne(ctx context.Context, pr *github.PullRequest) error {
 			fmt.Sprintf("could not fetch reviews on %s", *pr.HTMLURL))
 	}
 
+	commits, err := s.Query.GetCommits(ctx, pr)
+	if err != nil {
+		return errors.Wrap(err,
+			fmt.Sprintf("could not fetch commits on %s", *pr.HTMLURL))
+	}
+
 	details := &PullRequestDetails{
 		Pull:                pr,
 		State:               *pr.State,
 		IssueComments:       issueComments,
 		PullRequestComments: prComments,
 		Reviews:             reviews,
+		Commits:             commits,
 	}
 	if isMerged {
 		details.State = "merged"
