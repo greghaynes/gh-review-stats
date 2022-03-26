@@ -115,7 +115,7 @@ var prHistoryCmd = &cobra.Command{
 					fmt.Printf("%d days\n", delay)
 				}
 			}
-			fmt.Printf("%s: %s\n", e.Date.Format(dateFmt), e.Description)
+			fmt.Printf("%s: %s\n", e.Date.Format("Mon Jan _2"), e.Description)
 			previous = e
 		}
 
