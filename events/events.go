@@ -41,7 +41,7 @@ func getName(user *github.User) string {
 
 func GetOrderedEvents(prd *stats.PullRequestDetails) []*Event {
 	results := []*Event{
-		&Event{
+		{
 			Date: prd.Pull.CreatedAt,
 			Description: fmt.Sprintf("#%d opened by %s %q (%s)",
 				*prd.Pull.Number, getName(prd.Pull.User), *prd.Pull.Title,
