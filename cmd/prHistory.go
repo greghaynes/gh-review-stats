@@ -18,6 +18,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"os/signal"
 	"strconv"
@@ -105,9 +106,17 @@ var prHistoryCmd = &cobra.Command{
 		fmt.Printf("Age         : %d days\n", daysOpen)
 		fmt.Printf("\n")
 
+		var previous *events.Event
 		events := events.GetOrderedEvents(prd)
 		for _, e := range events {
+			if previous != nil {
+				delay := int(math.Ceil(e.Date.Sub(*previous.Date).Hours() / 24))
+				if delay > 1 {
+					fmt.Printf("%d days\n", delay)
+				}
+			}
 			fmt.Printf("%s: %s\n", e.Date.Format(dateFmt), e.Description)
+			previous = e
 		}
 
 		return nil

@@ -39,9 +39,9 @@ func getName(user *github.User) string {
 	return "unnamed"
 }
 
-func GetOrderedEvents(prd *stats.PullRequestDetails) []Event {
-	results := []Event{
-		Event{
+func GetOrderedEvents(prd *stats.PullRequestDetails) []*Event {
+	results := []*Event{
+		&Event{
 			Date:        prd.Pull.CreatedAt,
 			Description: "pull request opened",
 		},
@@ -51,34 +51,31 @@ func GetOrderedEvents(prd *stats.PullRequestDetails) []Event {
 		if prd.State == "merged" {
 			desc = "pull request merged"
 		}
-		results = append(results, Event{
+		results = append(results, &Event{
 			Date:        prd.Pull.ClosedAt,
 			Description: desc,
 		})
 	}
 
 	for _, review := range prd.Reviews {
-		e := Event{
+		results = append(results, &Event{
 			Date:        review.SubmittedAt,
 			Description: fmt.Sprintf("review by %s", getName(review.User)),
-		}
-		results = append(results, e)
+		})
 	}
 
 	for _, comment := range prd.PullRequestComments {
-		e := Event{
+		results = append(results, &Event{
 			Date:        comment.CreatedAt,
 			Description: fmt.Sprintf("comment by %s", getName(comment.User)),
-		}
-		results = append(results, e)
+		})
 	}
 
 	for _, comment := range prd.IssueComments {
-		e := Event{
+		results = append(results, &Event{
 			Date:        comment.CreatedAt,
 			Description: fmt.Sprintf("comment by %s", getName(comment.User)),
-		}
-		results = append(results, e)
+		})
 	}
 
 	sort.Slice(results, func(i, j int) bool {
