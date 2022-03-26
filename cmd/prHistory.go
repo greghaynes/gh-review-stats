@@ -110,7 +110,7 @@ var prHistoryCmd = &cobra.Command{
 		events := events.GetOrderedEvents(prd)
 		for _, e := range events {
 			if previous != nil {
-				delay := int(math.Ceil(e.Date.Sub(*previous.Date).Hours() / 24))
+				delay := int(math.Floor(e.Date.Sub(*previous.Date).Hours() / 24))
 				if delay > 1 {
 					fmt.Printf("%d days\n", delay)
 				}
