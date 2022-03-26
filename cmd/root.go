@@ -54,6 +54,15 @@ func githubToken() string {
 	return viper.GetString(githubTokenConfigOptionName)
 }
 
+func addHistoryArgs(theCommand *cobra.Command) {
+	theCommand.PersistentFlags().StringVarP(&orgName, "org", "o", "",
+		"github org")
+	theCommand.PersistentFlags().StringVarP(&repoName, "repo", "r", "",
+		"github repository")
+	theCommand.PersistentFlags().IntVar(&daysBack, "days-back", 90,
+		"how many days back to query")
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -67,13 +76,6 @@ func init() {
 		"config file (default is $HOME/.gh-review-stats.yml)")
 	rootCmd.PersistentFlags().BoolVar(&devMode, "dev", false,
 		"enable developer mode, shortcutting some queries")
-	rootCmd.PersistentFlags().StringVarP(&orgName, "org", "o", "",
-		"github org")
-	rootCmd.PersistentFlags().StringVarP(&repoName, "repo", "r", "",
-		"github repository")
-	rootCmd.PersistentFlags().IntVar(&daysBack, "days-back", 90,
-		"how many days back to query")
-
 }
 
 // initConfig reads in config file and ENV variables if set.

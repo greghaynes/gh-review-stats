@@ -132,4 +132,5 @@ func init() {
 	reviewersCmd.Flags().StringSliceVarP(&ignoredReviewers,
 		"ignore", "i", []string{},
 		"ignore a reviewer (useful for bots), can be repeated")
+	addHistoryArgs(reviewersCmd)
 }

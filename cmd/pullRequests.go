@@ -170,6 +170,7 @@ func newPullRequestsCommand() *cobra.Command {
 		},
 	}
 
+	addHistoryArgs(pullRequestsCmd)
 	pullRequestsCmd.Flags().StringVarP(&outputFileName, "output", "O", "",
 		"output file to create (defaults to stdout)")
 	pullRequestsCmd.Flags().BoolVar(&includeAll, "all", false,
