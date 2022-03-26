@@ -23,6 +23,7 @@ import (
 	"os/signal"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/dhellmann/gh-review-stats/events"
 	"github.com/dhellmann/gh-review-stats/stats"
@@ -31,9 +32,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type personDateCount struct {
-	Person string
-	Count  int
+type keyCount struct {
+	Key   string
+	Count int
 }
 
 // prHistoryCmd represents the prHistory command
@@ -102,8 +103,10 @@ var prHistoryCmd = &cobra.Command{
 		})
 
 		// prepare to summarize activity of participants
-		// maps user names to unique dates
+		// (maps user names to unique dates)
 		personActivityDates := map[string]map[string]bool{}
+		// (maps dates to activity count)
+		dateActivity := map[string]int{}
 
 		// show the event log
 		var previous *events.Event
@@ -124,13 +127,19 @@ var prHistoryCmd = &cobra.Command{
 			if _, ok := personActivityDates[e.Person]; !ok {
 				personActivityDates[e.Person] = map[string]bool{}
 			}
-			personActivityDates[e.Person][e.Date.Format(dateFmt)] = true
+			dateKey := e.Date.Format(dateFmt)
+			personActivityDates[e.Person][dateKey] = true
+
+			if _, ok := dateActivity[dateKey]; !ok {
+				dateActivity[dateKey] = 0
+			}
+			dateActivity[dateKey]++
 
 			previous = e
 		}
 
 		// show the number of dates each reviewer was active
-		pairs := []personDateCount{}
+		pairs := []keyCount{}
 		for person, dates := range personActivityDates {
 			if person == "" {
 				continue
@@ -138,9 +147,9 @@ var prHistoryCmd = &cobra.Command{
 			if _, ok := toIgnore[person]; ok {
 				continue
 			}
-			pairs = append(pairs, personDateCount{
-				Person: person,
-				Count:  len(dates),
+			pairs = append(pairs, keyCount{
+				Key:   person,
+				Count: len(dates),
 			})
 		}
 		sort.Slice(pairs, func(i, j int) bool {
@@ -149,7 +158,31 @@ var prHistoryCmd = &cobra.Command{
 
 		fmt.Printf("\nNumber of Engaged Days\n")
 		for _, p := range pairs {
-			fmt.Printf("%s: %d\n", p.Person, p.Count)
+			fmt.Printf("%s: %d\n", p.Key, p.Count)
+		}
+
+		// show the amount of activity on each day
+		pairs = []keyCount{}
+		maxDailyActivity := 0
+		for date, count := range dateActivity {
+			pairs = append(pairs, keyCount{
+				Key:   date,
+				Count: count,
+			})
+			if count > maxDailyActivity {
+				maxDailyActivity = count
+			}
+		}
+		sort.Slice(pairs, func(i, j int) bool {
+			return pairs[i].Key > pairs[j].Key
+		})
+
+		fmt.Printf("\nEngagement by Day\n")
+		for _, p := range pairs {
+			//barLength := int(math.Floor(float64(p.Count) / 100 * 25))
+			barLength := int(math.Floor((float64(p.Count) / float64(maxDailyActivity)) * 60))
+			bar := strings.Repeat("*", barLength)
+			fmt.Printf("%s: %3d %s\n", p.Key, p.Count, bar)
 		}
 
 		return nil
