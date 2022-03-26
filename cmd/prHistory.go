@@ -56,7 +56,7 @@ var prHistoryCmd = &cobra.Command{
 		prStats := &stats.Stats{
 			Query: query,
 			Buckets: []*stats.Bucket{
-				&stats.Bucket{
+				{
 					Rule: func(*stats.PullRequestDetails) bool {
 						return true
 					},
