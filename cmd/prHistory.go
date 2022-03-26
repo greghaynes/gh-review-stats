@@ -69,6 +69,8 @@ var prHistoryCmd = &cobra.Command{
 			},
 		}
 
+		toIgnore := reviewersToIgnore()
+
 		// fetch all of the event data for all pull requests
 		for _, arg := range args {
 			prID, err := strconv.Atoi(arg)
@@ -106,12 +108,17 @@ var prHistoryCmd = &cobra.Command{
 		// show the event log
 		var previous *events.Event
 		for _, e := range allEvents {
+			if _, ok := toIgnore[e.Person]; ok {
+				continue
+			}
+
 			if previous != nil {
 				delay := int(math.Floor(e.Date.Sub(*previous.Date).Hours() / 24))
 				if delay > 1 {
 					fmt.Printf("%d days\n", delay)
 				}
 			}
+
 			fmt.Printf("%s: %s\n", e.Date.Format("Mon Jan _2"), e.Description)
 
 			if _, ok := personActivityDates[e.Person]; !ok {
@@ -126,6 +133,9 @@ var prHistoryCmd = &cobra.Command{
 		pairs := []personDateCount{}
 		for person, dates := range personActivityDates {
 			if person == "" {
+				continue
+			}
+			if _, ok := toIgnore[person]; ok {
 				continue
 			}
 			pairs = append(pairs, personDateCount{
