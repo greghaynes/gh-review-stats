@@ -93,3 +93,31 @@ ID,Title,State,Author,URL,Created,Closed,Days to Merge
 147,Support for new parameters in HWCC.,merged,Ashughorla,https://github.com/metal3-io/metal3-docs/pull/147,2020-10-30,2021-03-09,130
 138,design: add sub-states,merged,dtantsur,https://github.com/metal3-io/metal3-docs/pull/138,2020-09-21,2021-02-10,141
 ```
+
+## Pull Request History
+
+The `pr-history` sub-command produces a log of the events associated
+with the pull requests given as input. It then summarizes the events
+to show which users were most active and which dates had the most
+activity.
+
+```console
+$ gh-review-stats pr-history -o dhellmann -r gh-review-stats 3 4
+Using config file: /Users/dhellmann/.gh-review-stats.yml
+Sun May  9: #3 updated by Doug Hellmann
+Sun May  9: #3 opened by dhellmann "Add GitHub actions for build and test" (https://github.com/dhellmann/gh-review-stats/pull/3)
+Sun May  9: #3 updated by Doug Hellmann
+Sun May  9: #3 merged after 0 days "Add GitHub actions for build and test" (https://github.com/dhellmann/gh-review-stats/pull/3)
+Sun May  9: #4 opened by dhellmann "add markdownlint action" (https://github.com/dhellmann/gh-review-stats/pull/4)
+Sun May  9: #4 updated by Doug Hellmann
+Sun May  9: #4 updated by Doug Hellmann
+Sun May  9: #4 updated by Doug Hellmann
+Sun May  9: #4 merged after 0 days "add markdownlint action" (https://github.com/dhellmann/gh-review-stats/pull/4)
+
+Number of Engaged Days
+Doug Hellmann: 1
+dhellmann: 1
+
+Engagement by Day
+2021-05-09:   9 ************************************************************
+```
