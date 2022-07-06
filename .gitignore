@@ -16,3 +16,4 @@
 
 # goreleaser build dir
 dist/
+/gh-review-stats
