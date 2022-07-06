@@ -1,0 +1,36 @@
+pull_request_rules:
+
+  - name: Add CI label
+    conditions:
+      - or:
+          - "title~=^make:"
+          - "title~=^ci:"
+          - "files~=Makefile"
+    actions:
+      label:
+        add:
+          - ci
+
+  - name: Add Mergify label
+    conditions:
+      - or:
+          - "title~=^mergify:"
+          - "files~=.mergify.yml$"
+    actions:
+      label:
+        add:
+          - mergify
+
+  - name: Automatic merge on approval
+    conditions:
+      - and:
+        - "check-success=lint"
+        - "check-success=build"
+        - "check-success=Lint README file"
+        - "-draft"
+        - or:
+          - "approved-reviews-by=dhellmann"
+          - "author=dhellmann"
+    actions:
+      merge:
+        method: merge
