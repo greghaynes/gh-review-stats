@@ -14,7 +14,7 @@ test: ## Run unit tests
 	go tool cover -func=$(COVER_PROFILE)
 
 .PHONY: lint
-lint: markdownlint ## Run go linter
+lint: ## Run go linter
 	golangci-lint run
 
 .PHONY: markdownlint
