@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/dhellmann/gh-review-stats/stats"
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v45/github"
 )
 
 type Event struct {
