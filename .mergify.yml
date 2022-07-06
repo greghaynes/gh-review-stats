@@ -6,6 +6,7 @@ pull_request_rules:
           - "title~=^make:"
           - "title~=^ci:"
           - "files~=Makefile"
+          - "files~=.github/"
     actions:
       label:
         add:
