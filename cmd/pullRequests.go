@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,11 +57,16 @@ func newPullRequestsCommand() *cobra.Command {
 			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 			defer stop()
 
+			ghClient, err := newGithubClient(ctx)
+			if err != nil {
+				return err
+			}
+
 			query := &util.PullRequestQuery{
 				Org:     orgName,
 				Repo:    repoName,
 				DevMode: devMode,
-				Client:  util.NewGithubClient(ctx, githubToken()),
+				Client:  ghClient,
 			}
 
 			all := stats.Bucket{
@@ -88,7 +93,7 @@ func newPullRequestsCommand() *cobra.Command {
 				EarliestDate: earliestDate,
 				Buckets:      []*stats.Bucket{&all},
 			}
-			err := theStats.Populate(ctx)
+			err = theStats.Populate(ctx)
 			if err != nil {
 				return errors.Wrap(err, "could not generate stats")
 			}
