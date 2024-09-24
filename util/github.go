@@ -9,10 +9,19 @@ import (
 
 // NewGithubClient creates a client for communicating with the GitHub
 // API using the provided token.
-func NewGithubClient(ctx context.Context, token string) *github.Client {
+func NewGithubClient(ctx context.Context, token, enterpriseBaseURL, enterpriseUploadURL string) (*github.Client, error) {
 	tokenSource := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
 	oauthClient := oauth2.NewClient(ctx, tokenSource)
-	return github.NewClient(oauthClient)
+
+	if enterpriseBaseURL != "" {
+		// If upload url is unset then we should set it to base URL
+		if enterpriseUploadURL == "" {
+			enterpriseUploadURL = enterpriseBaseURL
+		}
+		return github.NewEnterpriseClient(enterpriseBaseURL, enterpriseUploadURL, oauthClient)
+	}
+
+	return github.NewClient(oauthClient), nil
 }

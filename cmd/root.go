@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,16 +16,23 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
+	"github.com/dhellmann/gh-review-stats/util"
 	"github.com/spf13/cobra"
 
+	"github.com/google/go-github/v45/github"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
-const githubTokenConfigOptionName = "github.token"
+const (
+	githubTokenConfigOptionName               = "github.token"
+	githubEnterpriseBaseURLConfigOptionName   = "github.enterprise.base-url"
+	githubEnterpriseUploadURLConfigOptionName = "github.enterprise.upload-url"
+)
 
 var cfgFile string
 
@@ -54,6 +61,15 @@ func githubToken() string {
 	return viper.GetString(githubTokenConfigOptionName)
 }
 
+func newGithubClient(ctx context.Context) (*github.Client, error) {
+	return util.NewGithubClient(
+		ctx,
+		githubToken(),
+		viper.GetString(githubEnterpriseBaseURLConfigOptionName),
+		viper.GetString(githubEnterpriseUploadURLConfigOptionName),
+	)
+}
+
 func addHistoryArgs(theCommand *cobra.Command) {
 	theCommand.PersistentFlags().StringVarP(&orgName, "org", "o", "",
 		"github org")
@@ -71,6 +87,8 @@ func init() {
 	// will be global for your application.
 
 	viper.SetDefault(githubTokenConfigOptionName, "")
+	viper.SetDefault(githubEnterpriseBaseURLConfigOptionName, "")
+	viper.SetDefault(githubEnterpriseUploadURLConfigOptionName, "")
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
 		"config file (default is $HOME/.gh-review-stats.yml)")
